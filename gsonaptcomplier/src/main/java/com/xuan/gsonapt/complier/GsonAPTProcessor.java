@@ -40,12 +40,10 @@ public class GsonAPTProcessor extends AbstractProcessor {
         MESSAGER = processingEnv.getMessager();
         ELEMENT_UTILS = processingEnv.getElementUtils();
         TYPE_UTILS = processingEnv.getTypeUtils();
-        print("处理 init");
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        print("处理 getSupportedAnnotationTypes");
         Set<String> set = new HashSet<>();
         set.add(JsonBean.class.getCanonicalName());
         return set;
@@ -53,7 +51,6 @@ public class GsonAPTProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        print("处理");
         processJsonParse(roundEnv);
         return true;
     }
@@ -69,7 +66,6 @@ public class GsonAPTProcessor extends AbstractProcessor {
             String packageName = packageElement.getQualifiedName().toString();
 
             list.add(new JsonClassProxyInfo(packageName, className, element));
-            print("add");
         }
         JsonParseCreator.create(processingEnv, list);
 

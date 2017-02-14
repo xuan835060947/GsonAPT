@@ -6,10 +6,13 @@ package com.xuan.gsonapt.complier;
 
 public enum TypeJsonKind {
     BOOLEAN,
+    BYTE,
+    SHORT,
     INT,
     LONG,
     FLOAT,
     DOUBLE,
+    CHAR,
     STRING,
     NORMAL_BEAN,
     ARRAY,
@@ -17,8 +20,8 @@ public enum TypeJsonKind {
     LIST,
     MAP;
 
-    public boolean isValue(){
-        switch (this.ordinal()){
+    public boolean isBaseType() {
+        switch (ordinal()) {
             case 0:
             case 1:
             case 2:

@@ -26,23 +26,27 @@ public class CreateCodeUtil {
         String getMethodName = "get" + captureName(field.getSimpleName().toString());
         String boolGetMethodName = null;
         if (ElementUtil.getJsonKind(field).equals(BOOLEAN)) {
-            if (field.toString().substring(0, 2).equalsIgnoreCase("is")) {
+            if (field.toString().length() >= 2 && field.toString().substring(0, 2).equalsIgnoreCase("is")) {
                 boolGetMethodName = "is" + captureName(field.toString().substring(2));
             } else {
                 boolGetMethodName = "is" + captureName(field.toString());
             }
         }
         for (ExecutableElement executableElement : allFields) {
-            if (executableElement.getSimpleName().equals(getMethodName)
-                    && executableElement.getParameters().size() == 0
-                    && executableElement.getReturnType().equals(field.asType())) {
-                return new GetMethod(obgName + "." + getMethodName + "()");
+            String methodNamNoParam = executableElement.getSimpleName().toString();
+            String returnTypeName = executableElement.getReturnType().toString();
+            String fieldType = field.asType().toString();
+            if (!returnTypeName.equals(fieldType)) {
+                continue;
+            }
+            if (methodNamNoParam.equals(getMethodName)
+                    && executableElement.getParameters().size() == 0) {
+                return new GetMethod(obgName + "." + methodNamNoParam + "()");
             }
             if (boolGetMethodName != null) {
-                if (executableElement.getSimpleName().equals(boolGetMethodName)
-                        && executableElement.getParameters().size() == 0
-                        && executableElement.getReturnType().equals(field.asType())) {
-                    return new GetMethod(obgName + "." + getMethodName + "()");
+                if (methodNamNoParam.equals(boolGetMethodName)
+                        && executableElement.getParameters().size() == 0) {
+                    return new GetMethod(obgName + "." + methodNamNoParam + "()");
                 }
             }
         }
@@ -60,34 +64,31 @@ public class CreateCodeUtil {
         String setMethodName = "set" + captureName(field.getSimpleName().toString());
         String boolSetMethodName = null;
         if (ElementUtil.getJsonKind(field).equals(BOOLEAN)) {
-            if (field.toString().substring(0, 2).equalsIgnoreCase("is")) {
+            if (field.toString().length() >= 2 && field.toString().substring(0, 2).equalsIgnoreCase("is")) {
                 boolSetMethodName = "set" + captureName(field.toString().substring(2));
             } else {
                 boolSetMethodName = "set" + captureName(field.toString());
             }
         }
         for (ExecutableElement executableElement : allFields) {
-
-            if (executableElement.getSimpleName().equals(setMethodName)
-                    && executableElement.getParameters().size() == 1
-                    && executableElement.getParameters().get(0).asType().equals(field.asType())) {
+            String methodNamNoParam = executableElement.getSimpleName().toString();
+            if (methodNamNoParam.equals(setMethodName)
+                    && executableElement.getParameters().size() == 1) {
                 return new SetMethod(obgName + "." + setMethodName + "( %s )");
             }
             if (boolSetMethodName != null) {
-                if (executableElement.getSimpleName().equals(setMethodName)
-                        && executableElement.getParameters().size() == 1
-                        && executableElement.getParameters().get(0).asType().equals(field.asType())) {
+                if (methodNamNoParam.equals(setMethodName)
+                        && executableElement.getParameters().size() == 1) {
                     return new SetMethod(obgName + "." + setMethodName + "( %s )");
                 }
             }
         }
-        return null;
+        return new SetMethod(obgName + "." + field + " = %s");
     }
 
     private static String captureName(String name) {
         name = name.substring(0, 1).toUpperCase() + name.substring(1);
         return name;
-
     }
 
     public static class GetMethod {

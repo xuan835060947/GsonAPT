@@ -16,10 +16,13 @@ import javax.lang.model.util.ElementFilter;
 import static com.xuan.gsonapt.complier.GsonAPTProcessor.ELEMENT_UTILS;
 import static com.xuan.gsonapt.complier.GsonAPTProcessor.TYPE_UTILS;
 import static com.xuan.gsonapt.complier.TypeJsonKind.BOOLEAN;
+import static com.xuan.gsonapt.complier.TypeJsonKind.BYTE;
+import static com.xuan.gsonapt.complier.TypeJsonKind.CHAR;
 import static com.xuan.gsonapt.complier.TypeJsonKind.DOUBLE;
 import static com.xuan.gsonapt.complier.TypeJsonKind.FLOAT;
 import static com.xuan.gsonapt.complier.TypeJsonKind.INT;
 import static com.xuan.gsonapt.complier.TypeJsonKind.LONG;
+import static com.xuan.gsonapt.complier.TypeJsonKind.SHORT;
 import static com.xuan.gsonapt.complier.TypeJsonKind.STRING;
 
 /**
@@ -52,16 +55,19 @@ public class ElementUtil {
                 case CLASS_BOOLEAN:
                     return BOOLEAN;
                 case CLASS_STRING:
-                case CLASS_CHARACCTER:
                     return STRING;
+                case CLASS_CHARACCTER:
+                    return CHAR;
                 case CLASS_FLOAT:
                     return FLOAT;
                 case CLASS_DOUBLE:
                     return DOUBLE;
                 case CLASS_INTEGER:
-                case CLASS_SHORT:
-                case CLASS_BYTE:
                     return INT;
+                case CLASS_SHORT:
+                    return SHORT;
+                case CLASS_BYTE:
+                    return BYTE;
                 case CLASS_LONG:
                     return LONG;
             }
@@ -85,13 +91,15 @@ public class ElementUtil {
                 case BOOLEAN:
                     return BOOLEAN;
                 case INT:
-                case BYTE:
-                case SHORT:
                     return INT;
+                case BYTE:
+                    return BYTE;
+                case SHORT:
+                    return SHORT;
                 case LONG:
                     return LONG;
                 case CHAR:
-                    return STRING;
+                    return CHAR;
                 case FLOAT:
                     return FLOAT;
                 case DOUBLE:

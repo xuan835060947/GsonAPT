@@ -4,7 +4,11 @@ import com.xuan.gsonapt.JsonBean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -17,8 +21,11 @@ public class SuperBean {
     long l;
     Long aLong;
     List<OtherBean> otherBeens = new ArrayList<>();
-    ArrayList<OtherBean> arrayList = new ArrayList<>();
+    ArrayList<OtherBean> arrayList;
     HashMap<String, OtherBean> hashMap = new HashMap<>();
+    Set<Integer> hashSet = new HashSet();
+    LinkedHashSet<Integer> linkedHashSet = new LinkedHashSet();
+    Map<OtherBean,String> otherBeanStringMap= new HashMap<>();
 
     public boolean isSuper() {
         return isSuper;
