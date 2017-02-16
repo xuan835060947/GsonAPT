@@ -66,7 +66,7 @@ how much time to parse the big bean:
  10 | 7748 | 3740 | 9506 | 8182
   
  
- times | % of GsonAPT toJson Speed
+ times |Gson toJson Speed / GsonAPT toJson Speed
  ------|-------------
  10000(small) | 49%       
  100000(small) | 52% 
@@ -74,7 +74,7 @@ how much time to parse the big bean:
  10(big) | 48% 
  
  
- times | % of GsonAPT fromJson Speed
+ times |Gson fromJson Speed / GsonAPT fromJson Speed
  ------|-------------
  10000(small) | 86%       
  100000(small) | 88% 
@@ -83,3 +83,5 @@ how much time to parse the big bean:
 ## attention
 1. the field should was public , default or have the get/set method in the bean 
 2. it no support the non-static inner class like the default Gson
+
+
