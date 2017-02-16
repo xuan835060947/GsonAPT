@@ -50,7 +50,7 @@ compile will generate the GsonAPT class
         
         
 ## How fast
-the small bean:
+how much time to parse the small bean:
 
  times | Gson toJson | GsonAPT toJson | Gson fromJson | GsonAPT fromJson
  ------|-------------|----------------|---------------|-----------------
@@ -58,7 +58,7 @@ the small bean:
  10000 | 738         | 363 | 883 | 756 
  100000 | 8361 | 4420 | 10616 | 9346 
 
-the big bean:
+how much time to parse the big bean:
 
  times | Gson toJson | GsonAPT toJson | Gson fromJson | GsonAPT fromJson
  ------|-------------|----------------|---------------|-----------------
