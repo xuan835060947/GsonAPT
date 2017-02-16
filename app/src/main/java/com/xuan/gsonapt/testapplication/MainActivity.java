@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (bigStr == null || bigStr.length() == 0) {
             bigNum = 0;
         } else {
-            bigNum = Integer.parseInt(smallStr);
+            bigNum = Integer.parseInt(bigStr);
         }
         bigBean.setLittleBeanList(smallBeanList);
         String smallBeanStr = GsonAPT.toJson(smallBean);
