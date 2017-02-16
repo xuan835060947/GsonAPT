@@ -122,7 +122,7 @@ public class GsonAptCreator {
                 "        }\n" +
                 "    }\n" +
                 "\n" +
-                "    public static void toJsonNormal(JsonWriter jsonWriter, Object object) throws IOException {\n" +
+                "    private static void toJsonNormal(JsonWriter jsonWriter, Object object) throws IOException {\n" +
                 "        if (object == null) {\n" +
                 "            jsonWriter.nullValue();\n" +
                 "            return;\n" +
@@ -185,7 +185,7 @@ public class GsonAptCreator {
                 "        return null;\n" +
                 "    }\n" +
                 "\n" +
-                "    private static <T> T fromJson(JsonReader jsonReader, Type type) throws IOException {\n" +
+                "    public static <T> T fromJson(JsonReader jsonReader, Type type) throws IOException {\n" +
                 "        if(jsonReader.peek() == JsonToken.NULL){\n" +
                 "            jsonReader.nextNull();"+
                 "            return null;\n" +
@@ -421,7 +421,7 @@ public class GsonAptCreator {
 
     private void writeToJson(StringBuilder builder, List<JsonClassProxyInfo> jsonClassProxyInfos) {
         for (JsonClassProxyInfo info : jsonClassProxyInfos) {
-            builder.append(" if (object instanceof " + info.getClassName() + "){\n");
+            builder.append(" if (object.getClass().equals( " + info.getClassName() + ".class)){\n");
             builder.append(info.getProxyClassFullName() + ".toJson(jsonWriter, (" + info.getClassName() + ") object);\n");
             builder.append("return;\n");
             builder.append("}\n");

@@ -58,14 +58,16 @@ public class GsonAPTProcessor extends AbstractProcessor {
     private void processJsonParse(RoundEnvironment roundEnv) {
         //json 处理
         List<JsonClassProxyInfo> list = new ArrayList<>();
+        List<TypeElement> typeElements = new ArrayList<>();
         for (Element element : roundEnv.getElementsAnnotatedWith(JsonBean.class)) {
             TypeElement classElement = (TypeElement) element;
-            print(""+classElement.getSimpleName());
+            print("" + classElement.getSimpleName());
             PackageElement packageElement = ELEMENT_UTILS.getPackageOf(classElement);
             String className = classElement.getSimpleName().toString();
             String packageName = packageElement.getQualifiedName().toString();
 
             list.add(new JsonClassProxyInfo(packageName, className, element));
+            typeElements.add(classElement);
         }
         JsonParseCreator.create(processingEnv, list);
 

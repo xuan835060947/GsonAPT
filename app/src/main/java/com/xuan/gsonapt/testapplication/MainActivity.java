@@ -9,19 +9,21 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.xuan.gsonapt.GsonAPT;
-import com.xuan.gsonapt.testapplication.bean.OtherBean;
-import com.xuan.gsonapt.testapplication.bean.SuperBean;
+import com.xuan.gsonapt.testapplication.bean.testtime.BigBean;
+import com.xuan.gsonapt.testapplication.bean.testtime.SmallBean;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private final String TAG = MainActivity.class.getSimpleName();
     private Button mBtnClick;
-    private EditText mEtNumber;
+    private EditText mEtSmallBeanNumber;
+    private EditText mEtBigBeanNumber;
     private TextView mTvSpendTime;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +31,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         mBtnClick = (Button) findViewById(R.id.btn_click);
-        mEtNumber = (EditText) findViewById(R.id.et_number);
+        mEtSmallBeanNumber = (EditText) findViewById(R.id.et_small_bean);
+        mEtBigBeanNumber = (EditText) findViewById(R.id.et_big_bean);
         mTvSpendTime = (TextView) findViewById(R.id.tv_spendTime);
         mBtnClick.setOnClickListener(this);
     }
@@ -38,72 +41,103 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_click:
-                try {
-                    testSuperBeanJsonParse();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                testTime();
                 break;
         }
     }
 
-    private void testSuperBeanJsonParse() throws IOException {
-        SuperBean superBean = new SuperBean();
-        HashMap<String, OtherBean> map = new HashMap<>();
-        map.put("你好", new OtherBean("map的bean"));
-        superBean.setHashMap(map);
-        String jsonStr = GsonAPT.toJson(superBean);
-        Log.e(TAG, jsonStr);
-
-        String numStr = mEtNumber.getText().toString();
-        mTvSpendTime.setText("num : " + numStr);
-        int num;
-        if (numStr == null || numStr.length() == 0) {
-            num = 1;
+    public void testTime() {
+        SmallBean smallBean = new SmallBean();
+        BigBean bigBean = new BigBean();
+        List<SmallBean> smallBeanList = new ArrayList<>(1000);
+        for (int i = 0; i < 10000; i++) {
+            smallBeanList.add(new SmallBean());
+        }
+        String smallStr = mEtSmallBeanNumber.getText().toString();
+        String bigStr = mEtBigBeanNumber.getText().toString();
+        mTvSpendTime.setText("num : " + smallStr);
+        int smallNum;
+        int bigNum;
+        if (smallStr == null || smallStr.length() == 0) {
+            smallNum = 0;
         } else {
-            num = Integer.parseInt(numStr);
+            smallNum = Integer.parseInt(smallStr);
         }
-        toJsonTest(num, superBean);
-        fromJsonTest(num, jsonStr, SuperBean.class);
+        if (bigStr == null || bigStr.length() == 0) {
+            bigNum = 0;
+        } else {
+            bigNum = Integer.parseInt(smallStr);
+        }
+        bigBean.setLittleBeanList(smallBeanList);
+        String smallBeanStr = GsonAPT.toJson(smallBean);
+        String bigBeanStr = GsonAPT.toJson(bigBean);
+        Log.e(TAG, "\nsmall string leng : " + smallBeanStr.length());
+        Log.e(TAG, "\nbig string leng : " + bigBeanStr.length());
 
-        toJsonTest(num, new OtherBean("hello"));
-        String otherBeanJsonStr = new Gson().toJson(new OtherBean("hello"));
-        fromJsonTest(num, otherBeanJsonStr, OtherBean.class);
+        testToFromJson(smallNum, smallBean, smallBeanStr);
+
+        testBigBean(bigNum, bigBean, bigBeanStr);
+
+        Log.e(TAG, "\ntestTime end !!");
     }
 
-    private void toJsonTest(int num, Object object) {
-        Gson gson = new Gson();
-        GsonAPT.setGson(gson);
-        long gsonStart = System.currentTimeMillis();
-        for (int i = 0; i < num; i++) {
-            gson.toJson(object);
-        }
-        long gsonEnd = System.currentTimeMillis();
-        mTvSpendTime.append("\n"+object.getClass()+" Gson toJson spend time : " + (gsonEnd - gsonStart));
+    private void testToFromJson(int num, SmallBean smallBean, String smallStr) {
+        Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+        GsonAPT.setGson(new GsonBuilder().enableComplexMapKeySerialization().create());
 
-        long gsonAPTStart = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         for (int i = 0; i < num; i++) {
-            GsonAPT.toJson(object);
+            gson.toJson(smallBean);
         }
-        long gsonAPTEnd = System.currentTimeMillis();
-        mTvSpendTime.append("\n"+object.getClass()+" GsonAPT toJson spend time : " + (gsonAPTEnd - gsonAPTStart));
+        Log.e(TAG, "\nGson toJson small bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < num; i++) {
+            GsonAPT.toJson(smallBean);
+        }
+        Log.e(TAG, "\nGsonAPT toJson smallBean bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < num; i++) {
+            gson.fromJson(smallStr, SmallBean.class);
+        }
+        Log.e(TAG, "\nGson fromJson small bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < num; i++) {
+            GsonAPT.fromJson(smallStr, SmallBean.class);
+        }
+        Log.e(TAG, "\nGsonAPT fromJson smallBean bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
     }
 
-    private void fromJsonTest(int num, String jsonStr, Type type) {
-        Gson gson = new Gson();
-        GsonAPT.setGson(gson);
-        long gsonFromJsonStart = System.currentTimeMillis();
-        for (int i = 0; i < num; i++) {
-            gson.fromJson(jsonStr, type);
-        }
-        long gsonFromJsonEnd = System.currentTimeMillis();
-        mTvSpendTime.append("\n"+type+" Gson fromJson spend time : " + (gsonFromJsonEnd - gsonFromJsonStart));
+    public void testBigBean(int num, BigBean bigBean, String bigStr) {
+        Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+        GsonAPT.setGson(new GsonBuilder().enableComplexMapKeySerialization().create());
 
-        long gsonAPTFromJsonStart = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         for (int i = 0; i < num; i++) {
-            GsonAPT.fromJson(jsonStr, type);
+            gson.toJson(bigBean);
         }
-        long gsonAPTFromJsonEnd = System.currentTimeMillis();
-        mTvSpendTime.append("\n"+type+" GsonAPT fromJson spend time : " + (gsonAPTFromJsonEnd - gsonAPTFromJsonStart));
+        Log.e(TAG, "\nGson toJson bigBean bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < num; i++) {
+            GsonAPT.toJson(bigBean);
+        }
+        Log.e(TAG, "\nGsonAPT toJson bigBean bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < num; i++) {
+            gson.fromJson(bigStr, BigBean.class);
+        }
+        Log.e(TAG, "\nGson fromJson bigBean bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < num; i++) {
+            GsonAPT.fromJson(bigStr, BigBean.class);
+        }
+        Log.e(TAG, "\nGsonAPT fromJson bigBean bean " + num + " times : spend time: " + (System.currentTimeMillis() - start));
+
     }
 }

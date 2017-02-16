@@ -6,9 +6,12 @@ import com.google.gson.internal.LinkedHashTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.xuan.gsonapt.GsonAPT;
 import com.xuan.gsonapt.testapplication.bean.OtherBean;
+import com.xuan.gsonapt.testapplication.bean.SubBean;
+import com.xuan.gsonapt.testapplication.bean.SubBean2;
 import com.xuan.gsonapt.testapplication.bean.SubTestBean;
+import com.xuan.gsonapt.testapplication.bean.SuperBean;
 import com.xuan.gsonapt.testapplication.bean.TestBean;
-import com.xuan.gsonapt.testapplication.bean.WildcardBean;
+import com.xuan.gsonapt.testapplication.bean.WildCardBean;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +31,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.WeakHashMap;
+
+import static com.xuan.gsonapt.GsonAPT.toJson;
 
 public class MyJunit {
     public static final Gson GSON = new GsonBuilder().enableComplexMapKeySerialization().create();
@@ -52,7 +57,7 @@ public class MyJunit {
         Map<Integer, OtherBean> map = new HashMap<>();
         map.put(9, new OtherBean(""));
         map.put(1, new OtherBean(null));
-//        map.put(null,new OtherBean("key null")); GsonFrom error
+//        map.put(null,new OtherBean("key null")); Gson is not support because some map are not support the null key
         testBean.setIntegerOtherBeanMap(map);
         testTestBean(testBean);
 
@@ -120,13 +125,24 @@ public class MyJunit {
         testBeanSet.add(new SubTestBean("subName 1"));
         testBeanSet.add(new SubTestBean("subName 2"));
         PrintUtil.print(GSON.toJson(testBeanSet));
-        PrintUtil.print(GsonAPT.toJson(testBeanSet));
+        PrintUtil.print(toJson(testBeanSet));
 
-        WildcardBean<OtherBean> wildcardBean = new WildcardBean<>(new OtherBean("哈哈"));
-        PrintUtil.print(GSON.toJson(wildcardBean));
-        PrintUtil.print(GsonAPT.toJson(wildcardBean));
+        List<SuperBean> superBeanList = new ArrayList<>();
+        superBeanList.add(new SubBean("sub bean"));
+        superBeanList.add(new SubBean2("sub bean"));
+        testBean.setSuperBeanList(superBeanList);
+        PrintUtil.print(GSON.toJson(testBean));
+        PrintUtil.print(toJson(testBean));
+        String string = GSON.toJson(testBean);
+        testBean = GSON.fromJson(string, TestBean.class);
+        PrintUtil.print(GSON.toJson(testBean));
+
+
+        WildCardBean<String, OtherBean> wildCardBean = new WildCardBean<>("", new OtherBean());
+        String str = GsonAPT.toJson(wildCardBean);
+        GsonAPT.fromJson(str, new TypeToken<WildCardBean<String, OtherBean>>() {
+        }.getType());
     }
-
 
     public void testTestBean(TestBean testBean) {
         TestBean oldBean = testBean;
@@ -151,7 +167,7 @@ public class MyJunit {
         String str = GSON.toJson(object);
         object = GsonAPT.fromJson(str, type);
         Assert.assertEquals(old, object);
-        str = GsonAPT.toJson(object);
+        str = toJson(object);
         object = GSON.fromJson(str, type);
         Assert.assertEquals(old, object);
     }
@@ -192,7 +208,7 @@ class GsonFromJson implements FromJson {
 
     @Override
     public <T> T fromJson(String jsonStr, Type type) {
-//        PrintUtil.print(" Gson fromJson");
+        PrintUtil.print(" Gson fromJson");
 
         T t = MyJunit.GSON.fromJson(jsonStr, type);
         return t;
@@ -203,7 +219,7 @@ class GsonAPTFromJson implements FromJson {
 
     @Override
     public <T> T fromJson(String jsonStr, Type type) {
-//        PrintUtil.print(" APT fromJson");
+        PrintUtil.print(" APT fromJson");
 
         T t = GsonAPT.fromJson(jsonStr, type);
         return t;

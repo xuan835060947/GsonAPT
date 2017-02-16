@@ -35,7 +35,7 @@ import java.util.WeakHashMap;
  * Created by chenxiaoxuan1 on 17/2/8.
  */
 
-public class JsonParse {
+class JsonParse {
     private static Gson sGson = new Gson();
 
     public static String toJson(Object object) {
@@ -66,13 +66,13 @@ public class JsonParse {
         } else if (object instanceof Map) {
             Map map = (Map) object;
             Set<Map.Entry> set = map.entrySet();
-            if(set.size() == 0){
+            if (set.size() == 0) {
                 sGson.toJson(object, object.getClass(), jsonWriter);
                 return;
             }
             for (Object item : set) {
                 Map.Entry entry = (Map.Entry) item;
-                if (entry.getKey()!=null && !isBaseValue(entry.getKey().getClass())) {
+                if (entry.getKey() != null && !isBaseValue(entry.getKey().getClass())) {
                     sGson.toJson(object, object.getClass(), jsonWriter);
                     return;
                 }
@@ -103,7 +103,7 @@ public class JsonParse {
         }
     }
 
-    public static void toJsonNormal(JsonWriter jsonWriter, Object object) throws IOException {
+    private static void toJsonNormal(JsonWriter jsonWriter, Object object) throws IOException {
         if (object == null) {
             jsonWriter.nullValue();
             return;
@@ -152,7 +152,7 @@ public class JsonParse {
             return;
         }
 
-        if (object instanceof Bean) {//all the json bean parser
+        if (object.getClass().equals(Bean.class)) {//all the json bean parser
             Bean$$JsonParse.toJson(jsonWriter, (Bean) object);
             return;
         }
@@ -162,6 +162,7 @@ public class JsonParse {
     public static <T> T fromJson(String json, Type type) throws JsonSyntaxException {
         StringReader stringReader = new StringReader(json);
         JsonReader jsonReader = new JsonReader(stringReader);
+        jsonReader.setLenient(true);
         try {
             return fromJson(jsonReader, type);
         } catch (IOException e) {
@@ -170,7 +171,7 @@ public class JsonParse {
         return null;
     }
 
-    private static <T> T fromJson(JsonReader jsonReader, Type type) throws IOException {
+    public static <T> T fromJson(JsonReader jsonReader, Type type) throws IOException {
         if (jsonReader.peek() == JsonToken.NULL) {
             jsonReader.nextNull();
             return null;

@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 
 /**
@@ -14,8 +15,10 @@ import javax.tools.JavaFileObject;
 
 public class JsonParseCreator {
     private static boolean hasCreateGsonAPT;
+    private static List<JsonClassProxyInfo> sAllProxy;
 
     public static void create(ProcessingEnvironment processingEnv, List<JsonClassProxyInfo> list) {
+        sAllProxy = list;
         for (JsonClassProxyInfo jsonClassProxyInfo : list) {
             writeCode(processingEnv, jsonClassProxyInfo.getProxyClassFullName(), jsonClassProxyInfo.generateJavaCode(), jsonClassProxyInfo.getElement());
         }
@@ -45,5 +48,15 @@ public class JsonParseCreator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static JsonClassProxyInfo getProxy(TypeMirror typeMirror){
+        String type = typeMirror.toString();
+        for (JsonClassProxyInfo proxyInfo : sAllProxy){
+            if(type.equals(proxyInfo.getElement().asType().toString())){
+                return proxyInfo;
+            }
+        }
+        return null;
     }
 }

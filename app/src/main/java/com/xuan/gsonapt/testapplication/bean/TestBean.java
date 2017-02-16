@@ -33,6 +33,7 @@ public class TestBean {
     Map<Integer, OtherBean> integerOtherBeanMap;
     Set<String> stringSet;
     Map<OtherBean,String> complexKeyMap;
+    List<SuperBean> superBeanList;
 
     public Map<Integer, OtherBean> getIntegerOtherBeanMap() {
         return integerOtherBeanMap;
@@ -210,6 +211,69 @@ public class TestBean {
         this.complexKeyMap = complexKeyMap;
     }
 
+    public List<SuperBean> getSuperBeanList() {
+        return superBeanList;
+    }
+
+    public void setSuperBeanList(List<SuperBean> superBeanList) {
+        this.superBeanList = superBeanList;
+    }
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//
+//        TestBean testBean = (TestBean) o;
+//
+//        if (b != testBean.b) return false;
+//        if (c != testBean.c) return false;
+//        if (by != testBean.by) return false;
+//        if (s != testBean.s) return false;
+//        if (i != testBean.i) return false;
+//        if (l != testBean.l) return false;
+//        if (Float.compare(testBean.f, f) != 0) return false;
+//        if (Double.compare(testBean.d, d) != 0) return false;
+//        if (aBoolean != null ? !aBoolean.equals(testBean.aBoolean) : testBean.aBoolean != null)
+//            return false;
+//        if (aCharacter != null ? !aCharacter.equals(testBean.aCharacter) : testBean.aCharacter != null)
+//            return false;
+//        if (aByte != null ? !aByte.equals(testBean.aByte) : testBean.aByte != null) return false;
+//        if (aShort != null ? !aShort.equals(testBean.aShort) : testBean.aShort != null)
+//            return false;
+//        if (aInteger != null ? !aInteger.equals(testBean.aInteger) : testBean.aInteger != null)
+//            return false;
+//        if (aLong != null ? !aLong.equals(testBean.aLong) : testBean.aLong != null) return false;
+//        if (aFloat != null ? !aFloat.equals(testBean.aFloat) : testBean.aFloat != null)
+//            return false;
+//        if (aDouble != null ? !aDouble.equals(testBean.aDouble) : testBean.aDouble != null)
+//            return false;
+//        if (str != null ? !str.equals(testBean.str) : testBean.str != null) return false;
+//        if (otherBean != null ? !otherBean.equals(testBean.otherBean) : testBean.otherBean != null)
+//            return false;
+//        if (otherBeanList != null ? !otherBeanList.equals(testBean.otherBeanList) : testBean.otherBeanList != null)
+//            return false;
+//        if (integerOtherBeanMap != null) {
+//            if (testBean.integerOtherBeanMap == null) return false;
+//            if (integerOtherBeanMap.size() != testBean.integerOtherBeanMap.size()) {
+//                return false;
+//            }
+//            for (Map.Entry<Integer, OtherBean> entry : integerOtherBeanMap.entrySet()) {
+//                if (!entry.getValue().equals(testBean.integerOtherBeanMap.get(entry.getKey()))) {
+//                    return false;
+//                }
+//            }
+//
+//        }else {
+//            if(testBean.integerOtherBeanMap != null){
+//                return false;
+//            }
+//        }
+//        return stringSet != null ? stringSet.equals(testBean.stringSet) : testBean.stringSet == null;
+//
+//    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -244,26 +308,15 @@ public class TestBean {
             return false;
         if (otherBeanList != null ? !otherBeanList.equals(testBean.otherBeanList) : testBean.otherBeanList != null)
             return false;
-        if (integerOtherBeanMap != null) {
-            if (testBean.integerOtherBeanMap == null) return false;
-            if (integerOtherBeanMap.size() != testBean.integerOtherBeanMap.size()) {
-                return false;
-            }
-            for (Map.Entry<Integer, OtherBean> entry : integerOtherBeanMap.entrySet()) {
-                if (!entry.getValue().equals(testBean.integerOtherBeanMap.get(entry.getKey()))) {
-                    return false;
-                }
-            }
-
-        }else {
-            if(testBean.integerOtherBeanMap != null){
-                return false;
-            }
-        }
-        return stringSet != null ? stringSet.equals(testBean.stringSet) : testBean.stringSet == null;
+        if (integerOtherBeanMap != null ? !integerOtherBeanMap.equals(testBean.integerOtherBeanMap) : testBean.integerOtherBeanMap != null)
+            return false;
+        if (stringSet != null ? !stringSet.equals(testBean.stringSet) : testBean.stringSet != null)
+            return false;
+        if (complexKeyMap != null ? !complexKeyMap.equals(testBean.complexKeyMap) : testBean.complexKeyMap != null)
+            return false;
+        return superBeanList != null ? superBeanList.equals(testBean.superBeanList) : testBean.superBeanList == null;
 
     }
-
     @Override
     public int hashCode() {
         int result;

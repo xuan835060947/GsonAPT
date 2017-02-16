@@ -1,6 +1,8 @@
-package com.xuan.gsonapt.complier;
+package com.xuan.gsonapt.complier.util;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -13,7 +15,14 @@ import static com.xuan.gsonapt.complier.TypeJsonKind.BOOLEAN;
  */
 
 public class CreateCodeUtil {
+    private static Map<String, Integer> nameMap = new HashMap<>();
 
+    public static String getName( String itemType) {
+        Integer num = nameMap.get(itemType);
+        num = num == null ? 0 : num;
+        nameMap.put(itemType, ++num);
+        return itemType.toLowerCase() + num;
+    }
     /**
      * create the objName.field or objName.getXxx();
      *

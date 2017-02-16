@@ -1,4 +1,7 @@
-package com.xuan.gsonapt.complier;
+package com.xuan.gsonapt.complier.util;
+
+import com.xuan.gsonapt.complier.GsonAPTProcessor;
+import com.xuan.gsonapt.complier.TypeJsonKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;

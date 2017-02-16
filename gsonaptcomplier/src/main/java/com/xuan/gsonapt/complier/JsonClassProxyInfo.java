@@ -4,11 +4,14 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import com.xuan.gsonapt.complier.util.CreateCodeUtil;
+import com.xuan.gsonapt.complier.util.ElementUtil;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,6 +65,7 @@ public class JsonClassProxyInfo {
     class GenerateJavaCode {
         private Set<String> mImportSet = new HashSet<>();
         private String mLocalBeanName;
+        private boolean mIsStart;
 
         public GenerateJavaCode(String localBeanName) {
             this.mLocalBeanName = localBeanName;
@@ -83,6 +87,7 @@ public class JsonClassProxyInfo {
 
             //generate code for toJson method
             builder.append(" public static void toJson(JsonWriter jsonWriter," + simpleClassName + " " + mLocalBeanName + ") " + " throws IOException " + "{\n");
+            mIsStart = true;
             toJsonNormalBean(builder, element);
             builder.append('\n');
             builder.append("    }\n");
@@ -107,6 +112,7 @@ public class JsonClassProxyInfo {
                 case CHAR:
                 case INT:
                 case LONG:
+                case FLOAT:
                 case DOUBLE:
                 case STRING:
                     new GenerateJavaCode(localBeanName).toJsonBaseType(builder, element);
@@ -151,14 +157,26 @@ public class JsonClassProxyInfo {
             builder.append("if( " + mLocalBeanName + "== null){\n");
             builder.append("jsonWriter.nullValue();\n");
             builder.append("} else {\n");
-            builder.append("jsonWriter.beginObject();\n");
-            List<VariableElement> allFields = ElementUtil.getAllFields(element);
-            for (VariableElement field : allFields) {
-                writeName(builder, field.toString());
-                String getValue = CreateCodeUtil.getGetMethod(mLocalBeanName, element, field).getGetMethodCode();
-                toJson(builder, field, getValue);
+            builder.append("if(" + mLocalBeanName + ".getClass().equals(" + element.asType() + ".class)){\n");
+            JsonClassProxyInfo jsonClassProxyInfo = null;
+            if (!mIsStart) {
+                jsonClassProxyInfo = JsonParseCreator.getProxy(element.asType());
             }
-            builder.append("jsonWriter.endObject();\n");
+            if (jsonClassProxyInfo != null) {
+                builder.append("" + jsonClassProxyInfo.getProxyClassFullName() + ".toJson(jsonWriter," + mLocalBeanName + ");\n");
+            } else {
+                builder.append("jsonWriter.beginObject();\n");
+                List<VariableElement> allFields = ElementUtil.getAllFields(element);
+                for (VariableElement field : allFields) {
+                    writeName(builder, field.toString());
+                    String getValue = CreateCodeUtil.getGetMethod(mLocalBeanName, element, field).getGetMethodCode();
+                    toJson(builder, field, getValue);
+                }
+                builder.append("jsonWriter.endObject();\n");
+                builder.append("}else {\n");
+                builder.append("GsonAPT.toJson(jsonWriter," + mLocalBeanName + ");\n");
+            }
+            builder.append("}\n");
             builder.append("}\n");
         }
 
@@ -166,7 +184,7 @@ public class JsonClassProxyInfo {
             builder.append("if( " + mLocalBeanName + "== null){\n");
             builder.append("jsonWriter.nullValue();\n");
             builder.append("} else {\n");
-            String objName = "collection";
+            String objName = getName(mLocalBeanName, "Array");
             builder.append(element.asType() + " " + objName + " = " + mLocalBeanName + " ;\n");
             builder.append("jsonWriter.beginArray();\n");
             TypeMirror itemType;
@@ -176,13 +194,13 @@ public class JsonClassProxyInfo {
             } else {//List,Set
                 DeclaredType declaredType = (DeclaredType) element.asType();
                 List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-                if(typeArguments.size() == 0){
+                if (typeArguments.size() == 0) {
                     throw new IllegalArgumentException(mLocalBeanName + " must have the specific wildcard type ");
                 }
                 itemType = typeArguments.get(0);
             }
 
-            String itemName = "item";
+            String itemName = getName(mLocalBeanName, "Item");
             builder.append("for (" + itemType + " " + itemName + " : " + objName + "){\n");
             toJson(builder, TYPE_UTILS.asElement(itemType), itemName);
             builder.append("}\n");
@@ -194,20 +212,24 @@ public class JsonClassProxyInfo {
             builder.append("if( " + mLocalBeanName + "== null){\n");
             builder.append("jsonWriter.nullValue();\n");
             builder.append("} else {\n");
-            String objName = "collection";
-            builder.append(element.asType() + " " + objName + " = " + mLocalBeanName + " ;\n");
-            builder.append("jsonWriter.beginObject();\n");
             DeclaredType declaredType = (DeclaredType) element.asType();
             List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-            if(typeArguments.size() == 0){
-                throw new IllegalArgumentException(mLocalBeanName + " must have the specific wildcard type ");
+            if (ElementUtil.getJsonKind(GsonAPTProcessor.TYPE_UTILS.asElement(typeArguments.get(0))).isBaseType()) {
+                String objName = getName(mLocalBeanName, "Map");
+                builder.append(element.asType() + " " + objName + " = " + mLocalBeanName + " ;\n");
+                builder.append("jsonWriter.beginObject();\n");
+                if (typeArguments.size() == 0) {
+                    throw new IllegalArgumentException(mLocalBeanName + " must have the specific wildcard type ");
+                }
+                String itemName = getName(mLocalBeanName, "Item");
+                builder.append("for (Map.Entry<" + typeArguments.get(0) + "," + typeArguments.get(1) + "> " + itemName + " : " + objName + ".entrySet()){\n");
+                builder.append("jsonWriter.name(String.valueOf(" + itemName + ".getKey()));\n");
+                toJson(builder, TYPE_UTILS.asElement(typeArguments.get(1)), itemName + ".getValue()\n");
+                builder.append("}\n");
+                builder.append("jsonWriter.endObject();\n");
+            } else {
+                builder.append("GsonAPT.getGson().toJson(" + mLocalBeanName + "," + mLocalBeanName + ".getClass(),jsonWriter);\n");
             }
-            String itemName = "item";
-            builder.append("for (Map.Entry<" + typeArguments.get(0) + "," + typeArguments.get(1) + "> " + itemName + " : " + objName + ".entrySet()){\n");
-            builder.append("jsonWriter.name(String.valueOf(" + itemName + ".getKey()));\n");
-            toJson(builder, TYPE_UTILS.asElement(typeArguments.get(1)), itemName + ".getValue()\n");
-            builder.append("}\n");
-            builder.append("jsonWriter.endObject();\n");
             builder.append("}\n");
         }
 
@@ -215,6 +237,9 @@ public class JsonClassProxyInfo {
             builder.append("jsonWriter.name(" + "\"" + name + "\");\n");
         }
 
+        private String getName(String localBeanName, String itemType) {
+            return CreateCodeUtil.getName(itemType);
+        }
 
         public void initImportSet() {
             mImportSet.add(JsonWriter.class.getName());
@@ -257,6 +282,7 @@ public class JsonClassProxyInfo {
     }
 
     private static class GenerateFromJsonCode {
+        private Map<String, Integer> nameMap = new HashMap<>();
         private String mLocalBeanName;
         private String mJsonReaderName = "jsonReader";
         private CreateCodeUtil.SetMethod mSetMethod;
@@ -302,9 +328,13 @@ public class JsonClassProxyInfo {
                     break;
 
                 case BOOLEAN:
+                case BYTE:
+                case SHORT:
                 case INT:
                 case LONG:
+                case FLOAT:
                 case DOUBLE:
+                case CHAR:
                 case STRING:
                     generateJavaCode.fromJsonBaseType(builder, element, jsonKind);
                     break;
@@ -344,6 +374,9 @@ public class JsonClassProxyInfo {
                 case DOUBLE:
                     builder.append(mLocalBeanName + " = " + mJsonReaderName + ".nextDouble();\n");
                     break;
+                case FLOAT:
+                    builder.append(mLocalBeanName + " = (float)" + mJsonReaderName + ".nextDouble();\n");
+                    break;
                 case STRING:
                     builder.append(mLocalBeanName + " = " + mJsonReaderName + ".nextString();\n");
                     break;
@@ -366,11 +399,12 @@ public class JsonClassProxyInfo {
         }
 
         private void fromJsonNormalBean(StringBuilder builder, Element element) {
-            String itemName = mLocalBeanName.replace(".", "") + "Item";
-            builder.append(mLocalBeanName + " = new " + element.asType() + "();\n");
+            String itemName = getName(element, "Item");
+//            builder.append(mLocalBeanName + " = new " + element.asType() + "();\n");
             builder.append("if (" + mJsonReaderName + ".peek() == JsonToken.NULL) {\n");
             builder.append(mJsonReaderName + ".nextNull();\n");
             builder.append("} else { \n");
+            builder.append(mLocalBeanName + " = new " + element.asType() + "();\n");
             builder.append("" + mJsonReaderName + ".beginObject();\n");
             builder.append("while (" + mJsonReaderName + ".hasNext()){\n");
             builder.append("String " + itemName + " = " + mJsonReaderName + ".nextName();\n");
@@ -403,11 +437,11 @@ public class JsonClassProxyInfo {
             }
             DeclaredType declaredType = (DeclaredType) element.asType();
             List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-            if(typeArguments.size() == 0){
+            if (typeArguments.size() == 0) {
                 throw new IllegalArgumentException(mLocalBeanName + " must have the specific wildcard type ");
             }
             TypeMirror itemType = typeArguments.get(0);
-            String itemName = "item";
+            String itemName = getName(element, "Item");
             builder.append("" + mJsonReaderName + ".beginArray();\n");
             builder.append("while (" + mJsonReaderName + ".hasNext()){\n");
 //            builder.append(itemType + " " + itemName + " = null;\n");
@@ -431,11 +465,11 @@ public class JsonClassProxyInfo {
             }
             DeclaredType declaredType = (DeclaredType) element.asType();
             List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-            if(typeArguments.size() == 0){
+            if (typeArguments.size() == 0) {
                 throw new IllegalArgumentException(mLocalBeanName + " must have the specific wildcard type ");
             }
             TypeMirror itemType = typeArguments.get(0);
-            String itemName = "item";
+            String itemName = getName(element, "Item");
             builder.append("" + mJsonReaderName + ".beginArray();\n");
             builder.append("while (" + mJsonReaderName + ".hasNext()){\n");
 //            builder.append(itemType + " " + itemName + ";\n");
@@ -450,8 +484,8 @@ public class JsonClassProxyInfo {
         private void fromJsonArray(StringBuilder builder, Element element) {
             ArrayType arrayType = (ArrayType) element.asType();
             TypeMirror itemType = arrayType.getComponentType();
-            String arrayListName = "arrayList";
-            String itemName = "item";
+            String arrayListName = getName(element, "arrayList");
+            String itemName = getName(element, "Item");
             builder.append("if (" + mJsonReaderName + ".peek() == JsonToken.NULL) {\n");
             builder.append(mJsonReaderName + ".nextNull();\n");
             builder.append("} else { \n");
@@ -478,13 +512,13 @@ public class JsonClassProxyInfo {
             builder.append("} else { \n");
             DeclaredType declaredType = (DeclaredType) element.asType();
             List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-            if(typeArguments.size() == 0){
+            if (typeArguments.size() == 0) {
                 throw new IllegalArgumentException(mLocalBeanName + " must have the specific wildcard type ");
             }
             if (ElementUtil.getJsonKind(GsonAPTProcessor.TYPE_UTILS.asElement(typeArguments.get(0))).isBaseType()) {
-                String keyStrName = "keyStr";
-                String keyObjName = "keyObj";
-                String valueObjName = "valueObj";
+                String keyStrName = getName(element, "KeyStr");
+                String keyObjName = getName(element, "KeyObj");
+                String valueObjName = getName(element, "ValueObj");
                 String className = ElementUtil.doubleErasure(element.asType());
                 if (className.equals(Map.class.getName())) {
                     builder.append(mLocalBeanName + " = new LinkedHashMap<>();\n");
@@ -495,7 +529,7 @@ public class JsonClassProxyInfo {
                 builder.append("while (" + mJsonReaderName + ".hasNext()){\n");
                 builder.append("String " + keyStrName + " = " + mJsonReaderName + ".nextName();\n");
                 createObjectFromKey(builder, TYPE_UTILS.asElement(typeArguments.get(0)), keyObjName, keyStrName);
-                builder.append(typeArguments.get(1) + " " + valueObjName + " ;\n");
+                builder.append(typeArguments.get(1) + " " + valueObjName + " = null;\n");
                 fromJson(builder, TYPE_UTILS.asElement(typeArguments.get(1)), valueObjName);
                 builder.append(mLocalBeanName + ".put(" + keyObjName + "," + valueObjName + ");\n");
                 builder.append("}\n");
@@ -505,6 +539,10 @@ public class JsonClassProxyInfo {
             }
 
             builder.append("}\n");
+        }
+
+        private String getName(Element element, String type) {
+            return CreateCodeUtil.getName(type);
         }
 
         /**
