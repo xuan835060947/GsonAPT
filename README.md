@@ -65,7 +65,21 @@ the big bean:
  1 | 673 | 325 | 811 | 700
  10 | 7748 | 3740 | 9506 | 8182
   
-  
+ 
+ times | % of GsonAPT toJson Speed
+ ------|-------------
+ 10000(small) | 49%       
+ 100000(small) | 52% 
+ 1(big) | 48% 
+ 10(big) | 48% 
+ 
+ 
+ times | % of GsonAPT fromJson Speed
+ ------|-------------
+ 10000(small) | 86%       
+ 100000(small) | 88% 
+ 1(big) | 86% 
+ 10(big) | 86%    
 ## attention
 1. the field should was public , default or have the get/set method in the bean 
 2. it no support the non-static inner class like the default Gson
