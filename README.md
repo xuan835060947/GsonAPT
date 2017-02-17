@@ -1,5 +1,8 @@
 # GsonAPT 
 It is base in Gson lib and use Annotation Processor.If you can add the @JsonBean annotation to bean,the json parse will be faster;
+
+it can also process the bean without @JsonBean,which will be processed by default Gson.In addition you can use GsonAPT.setGson()to change the default Gson in GsonAPT.
+
 ## How to use
 ### step 1 
 
